@@ -336,14 +336,15 @@ test('static shell is subpath-safe: no absolute asset paths (GitHub Pages serves
    if(ref.startsWith('http'))continue; // external (none expected in the shell)
    assert.ok(!ref.startsWith('/'),'index.html absolute path breaks subpath hosting: '+ref);
  }
- const sw=read('../public/sw.js');
+ const sw=read('../sw.js');
  const assets=[...sw.matchAll(/\n?(?:const ASSETS=)?\[(.*?)\]/gs)].pop()[1]||'';
  for(const a of assets.split(',').map(s=>s.trim().replace(/^['"]|['"]$/g,'')).filter(Boolean)){
    assert.ok(!a.startsWith('/'),'sw.js ASSETS absolute path breaks subpath hosting: '+a);
  }
+ assert.ok(!fs.existsSync(new URL('../public/sw.js',import.meta.url)),'sw.js must live at the site root (scope cap), not in public/');
  const manifest=JSON.parse(read('../public/manifest.webmanifest'));
  assert.ok(!manifest.start_url.startsWith('/'),'manifest start_url absolute breaks subpath hosting');
  for(const ic of manifest.icons)assert.ok(!ic.src.startsWith('/'),'manifest icon src absolute breaks subpath hosting');
  const app=read('../app.mjs');
- assert.ok(app.includes("register('public/sw.js',{scope:'.'})"),'SW registration must be relative with explicit scope');
+ assert.ok(app.includes("register('sw.js')"),'SW registration must be relative to the site root');
 });
